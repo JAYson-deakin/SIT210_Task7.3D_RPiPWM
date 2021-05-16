@@ -1,0 +1,53 @@
+import RPi.GPIO as GPIO
+import time
+GPIO.setmode(GPIO.BCM)
+
+TRIG = 23
+ECHO = 24
+LED = 27
+
+
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
+GPIO.setup(LED, GPIO.OUT)
+
+pwm = GPIO.PWM(LED, 100)
+pwm.start(0)
+
+def distance():
+    GPIO.output(TRIG, True)
+    time.sleep(0.00001)
+    GPIO.output(TRIG, False)
+
+    start = time.time()
+    stop = time.time()
+
+    while GPIO.input(ECHO) == 0:
+        start = time.time()
+
+    while GPIO.input(ECHO) == 1:
+        stop = time.time()
+        Time = stop-start
+
+        distance = (Time*34300)/2
+
+    if(distance <= 50):
+        pwm.ChangeDutyCycle(100 - distance*2)
+        print('%.1f cm' % distance)
+        time.sleep(0.5)
+
+    else:
+        print('No object')
+        pwm.ChangeDutyCycle(0)
+        time.sleep(1)
+
+if __name__ == '__main__':
+    try:
+        while True:
+            distance()
+
+    except KeyboardInterrupt:
+        pass
+
+    finally:
+        GPIO.cleanup()
